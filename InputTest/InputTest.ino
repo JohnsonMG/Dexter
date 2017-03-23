@@ -10,20 +10,24 @@ Servo servo_bl;
 Servo servo_br;
 
 const int HOME = 512;
+const int dead_min = 485;
+const int dead_max = 520;
+const int RAMP_INTERVAL = 50;
 
-int joyX = 0;
-int joyY = 1;
-int joyR = 3;
-int pin_fl = 2;
-int pin_fr = 3;
-int pin_bl = 4;
-int pin_br = 5;
+const int pin_fl = 2;
+const int pin_fr = 3;
+const int pin_bl = 4;
+const int pin_br = 5;
+
+const int joyX = 0;
+const int joyY = 1;
+const int joyR = 3;
+
 int valX = HOME;
 int valY = HOME;
 int valR = HOME;
 int motors[] = {HOME, HOME, HOME, HOME}; // {fl, fr, bl, br}
-int dead_min = 485;
-int dead_max = 520;
+int prevMotors[] = {HOME, HOME, HOME, HOME};
 
 void setup() {
   Serial.begin(9600);
@@ -108,11 +112,35 @@ void set_motors() {
   send_motors();
 }
 
+// Increment the motor values gradually 
+void ramp_outputs(){
+  for (int i = 0; i < 4; i++){
+    //Forwards
+    if (prevMotors[i] - motors[i] > 0){
+      if(prevMotors[i] + RAMP_INTERVAL < motors[i]{
+        motors[i] = prevMotors[i] + RAMP_INTERVAL;
+      }
+    // Backwards
+    } else if (prevMotors[i] - motors[i] < 0){
+      if(prevMotors[i] - RAMP_INTERVAL > motors[i]{
+        motors[i] = prevMotors[i] - RAMP_INTERVAL
+      }
+    }
+  }
+}
+
 void scale_outputs() {
   //ensure range of 0 to 1023 then map for servo input range of 0-180
   for (int i = 0; i < 4; i++) {
-    if (motors[i] > 1023) motors[i] = 1023;
-    if (motors[i] < 0) motors[i] = 0;
+    if (motors[i] > 1023) {
+      motors[i] = 1023;
+    }else if (motors[i] < 0){
+      motors[i] = 0;
+    }
+
+    ramp_outputs();
+    
+    prevMotors[i] = motors[i];
 
     motors[i] = (int)map(motors[i], 0, 1023, 0, 180);
   }
