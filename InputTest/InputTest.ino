@@ -10,9 +10,10 @@ Servo servo_bl;
 Servo servo_br;
 
 const int HOME = 512;
-const int dead_min = 485;
-const int dead_max = 520;
+const int DEAD_MIN = 485;
+const int DEAD_MAX = 520;
 const int RAMP_INTERVAL = 50;
+const int DELAY_INTERVAL = 500;
 
 const int pin_fl = 2;
 const int pin_fr = 3;
@@ -32,15 +33,11 @@ int prevMotors[] = {HOME, HOME, HOME, HOME};
 void setup() {
   Serial.begin(9600);
 
+  // Attach servos to pins
   servo_fl.attach(pin_fl);
   servo_fr.attach(pin_fr);
   servo_bl.attach(pin_bl);
   servo_br.attach(pin_br);
-
-//  pinMode(pin_fl, OUTPUT);
-//  pinMode(pin_fr, OUTPUT);
-//  pinMode(pin_bl, OUTPUT);
-//  pinMode(pin_br, OUTPUT);
 }
 
 void loop() {
@@ -64,23 +61,18 @@ void send_motors() {
   servo_fr.write(motors[1]);
   servo_bl.write(motors[2]);
   servo_br.write(motors[3]);
-
-//  analogWrite(pin_fl, motors[0]);
-//  analogWrite(pin_fr, motors[1]);
-//  analogWrite(pin_bl, motors[2]);
-//  analogWrite(pin_fr, motors[3]);
 }
 
 void read_input() {
   // read the value from the sensor:
   int x = analogRead(joyX);
   int y = analogRead(joyY);
-  int r = 768; //analogRead(joyR);
+  int r = analogRead(joyR);
 
   //nullify deadzone
-  valX = (x >= dead_max || x <= dead_min) ? x : HOME;
-  valY = (y >= dead_max || y <= dead_min) ? y : HOME;
-  valR = (r >= dead_max || r <= dead_min) ? r : HOME;
+  valX = (x >= DEAD_MAX || x <= DEAD_MIN) ? x : HOME;
+  valY = (y >= DEAD_MAX || y <= DEAD_MIN) ? y : HOME;
+  valR = (r >= DEAD_MAX || r <= DEAD_MIN) ? r : HOME;
   shift_inputs();
 
   //testing print
@@ -90,7 +82,7 @@ void read_input() {
   Serial.println(valY);
 
   //control polling frequency
-  delay(500);
+  delay(DELAY_INTERVAL);
 }
 
 //Adjust input range from 0 <-> 1023 to -512 <-> 512
@@ -123,7 +115,7 @@ void ramp_outputs(){
     // Backwards
     } else if (prevMotors[i] - motors[i] < 0){
       if(prevMotors[i] - RAMP_INTERVAL > motors[i]{
-        motors[i] = prevMotors[i] - RAMP_INTERVAL
+        motors[i] = prevMotors[i] - RAMP_INTERVAL;
       }
     }
   }
