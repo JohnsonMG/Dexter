@@ -9,21 +9,27 @@ Servo servo_fr;
 Servo servo_bl;
 Servo servo_br;
 
+
+// Constants
 const int HOME = 512;
 const int DEAD_MIN = 485;
 const int DEAD_MAX = 520;
 const int RAMP_INTERVAL = 50;
-const int DELAY_INTERVAL = 500;
+const int POLL_INTERVAL = 500;
 
-const int pin_fl = 2;
-const int pin_fr = 3;
-const int pin_bl = 4;
-const int pin_br = 5;
 
+// Digital Pins
+const int mot_fl = 2;
+const int mot_fr = 3;
+const int mot_bl = 4;
+const int mot_br = 5;
+
+// Analog Pins
 const int joyX = 0;
 const int joyY = 1;
 const int joyR = 3;
 
+// Initial conditions
 int valX = HOME;
 int valY = HOME;
 int valR = HOME;
@@ -34,20 +40,20 @@ void setup() {
   Serial.begin(9600);
 
   // Attach servos to pins
-  servo_fl.attach(pin_fl);
-  servo_fr.attach(pin_fr);
-  servo_bl.attach(pin_bl);
-  servo_br.attach(pin_br);
+  servo_fl.attach(mot_fl);
+  servo_fr.attach(mot_fr);
+  servo_bl.attach(mot_bl);
+  servo_br.attach(mot_br);
 }
 
+// Main Body
 void loop() {
   read_input();
   set_motors();
 }
 
-void send_motors() {
-  //send motor values to output pins
 
+void send_motors() {
   Serial.print("motors[]= ");
   Serial.print(motors[0]);
   Serial.print(", ");
@@ -57,6 +63,7 @@ void send_motors() {
   Serial.print(", ");
   Serial.println(motors[3]);
 
+  //send motor values to output pins
   servo_fl.write(motors[0]);
   servo_fr.write(motors[1]);
   servo_bl.write(motors[2]);
@@ -64,12 +71,12 @@ void send_motors() {
 }
 
 void read_input() {
-  // read the value from the sensor:
+  // Read joystick inputs
   int x = analogRead(joyX);
   int y = analogRead(joyY);
   int r = analogRead(joyR);
 
-  //nullify deadzone
+  // Nullify deadzone
   valX = (x >= DEAD_MAX || x <= DEAD_MIN) ? x : HOME;
   valY = (y >= DEAD_MAX || y <= DEAD_MIN) ? y : HOME;
   valR = (r >= DEAD_MAX || r <= DEAD_MIN) ? r : HOME;
@@ -81,44 +88,30 @@ void read_input() {
   Serial.print("Y: ");
   Serial.println(valY);
 
-  //control polling frequency
-  delay(DELAY_INTERVAL);
+  // Control polling frequency
+  delay(POLL_INTERVAL);
 }
 
-//Adjust input range from 0 <-> 1023 to -512 <-> 512
+// Adjust input range from 0 <-> 1023 to -512 <-> 512
 void shift_inputs() {
   valX = valX - HOME;
   valY = valY - HOME;
   valR = valR - HOME;
 }
 
+// Controller method for populating motor values array
 void set_motors() {
+  initial_outputs();
+  scale_outputs();
+  send_motors();
+}
+
+void initial_outputs() {
   //logic to set motor value. Adding HOME shifts range back to 0-1024
   motors[0] = valY + valX + valR + HOME; //front left
   motors[1] = valY - valX - valR + HOME; //front right
   motors[2] = valY - valX + valR + HOME; //back left
   motors[3] = valY + valX - valR + HOME; //back right
-
-  scale_outputs();
-
-  send_motors();
-}
-
-// Increment the motor values gradually 
-void ramp_outputs(){
-  for (int i = 0; i < 4; i++){
-    //Forwards
-    if (prevMotors[i] - motors[i] > 0){
-      if(prevMotors[i] + RAMP_INTERVAL < motors[i]{
-        motors[i] = prevMotors[i] + RAMP_INTERVAL;
-      }
-    // Backwards
-    } else if (prevMotors[i] - motors[i] < 0){
-      if(prevMotors[i] - RAMP_INTERVAL > motors[i]{
-        motors[i] = prevMotors[i] - RAMP_INTERVAL;
-      }
-    }
-  }
 }
 
 void scale_outputs() {
@@ -138,5 +131,20 @@ void scale_outputs() {
   }
 }
 
-
+// Increment the motor values gradually 
+void ramp_outputs(){
+  for (int i = 0; i < 4; i++){
+    //Forwards
+    if (prevMotors[i] - motors[i] > 0){
+      if(prevMotors[i] + RAMP_INTERVAL < motors[i]{
+        motors[i] = prevMotors[i] + RAMP_INTERVAL;
+      }
+    // Backwards
+    } else if (prevMotors[i] - motors[i] < 0){
+      if(prevMotors[i] - RAMP_INTERVAL > motors[i]{
+        motors[i] = prevMotors[i] - RAMP_INTERVAL;
+      }
+    }
+  }
+}
 
