@@ -24,6 +24,15 @@ const int mot_fr = 3;
 const int mot_bl = 4;
 const int mot_br = 5;
 
+const int enc_flA = 6;
+const int enc_flB = 7;
+const int enc_frA = 8;
+const int enc_frB = 9;
+const int enc_blA = 10;
+const int enc_blB = 11;
+const int enc_brA = 12;
+const int enc_brB = 13;
+
 // Analog Pins
 const int joyX = 0;
 const int joyY = 1;
@@ -50,6 +59,8 @@ void setup() {
 void loop() {
   read_input();
   set_motors();
+  // Control polling frequency
+  delay(POLL_INTERVAL);
 }
 
 
@@ -74,7 +85,7 @@ void read_input() {
   // Read joystick inputs
   int x = analogRead(joyX);
   int y = analogRead(joyY);
-  int r = analogRead(joyR);
+  int r =  HOME; //analogRead(joyR);
 
   // Nullify deadzone
   valX = (x >= DEAD_MAX || x <= DEAD_MIN) ? x : HOME;
@@ -87,9 +98,8 @@ void read_input() {
   Serial.println(valX);
   Serial.print("Y: ");
   Serial.println(valY);
-
-  // Control polling frequency
-  delay(POLL_INTERVAL);
+  Serial.print("R: ");
+  Serial.println(valR);
 }
 
 // Adjust input range from 0 <-> 1023 to -512 <-> 512
@@ -115,36 +125,35 @@ void initial_outputs() {
 }
 
 void scale_outputs() {
-  //ensure range of 0 to 1023 then map for servo input range of 0-180
+  //ensure range of 0 to 1023 then map for servo input range of 0-180 
   for (int i = 0; i < 4; i++) {
+    ramp_outputs(i);
+
     if (motors[i] > 1023) {
       motors[i] = 1023;
     }else if (motors[i] < 0){
       motors[i] = 0;
     }
-
-    ramp_outputs();
     
     prevMotors[i] = motors[i];
-
     motors[i] = (int)map(motors[i], 0, 1023, 0, 180);
   }
 }
 
 // Increment the motor values gradually 
-void ramp_outputs(){
-  for (int i = 0; i < 4; i++){
-    //Forwards
-    if (prevMotors[i] - motors[i] > 0){
-      if(prevMotors[i] + RAMP_INTERVAL < motors[i]{
-        motors[i] = prevMotors[i] + RAMP_INTERVAL;
-      }
-    // Backwards
-    } else if (prevMotors[i] - motors[i] < 0){
-      if(prevMotors[i] - RAMP_INTERVAL > motors[i]{
-        motors[i] = prevMotors[i] - RAMP_INTERVAL;
+void ramp_outputs(int i){
+    if(prevMotors[i] - motors[i] != 0){
+      //Forwards
+      if (prevMotors[i] - motors[i] < 0){
+        if(prevMotors[i] + RAMP_INTERVAL < motors[i]){
+          motors[i] = prevMotors[i] + RAMP_INTERVAL;
+        }
+      // Backwards
+      } else if (prevMotors[i] - motors[i] > 0){
+        if(prevMotors[i] - RAMP_INTERVAL > motors[i]){
+          motors[i] = prevMotors[i] - RAMP_INTERVAL;
+        }
       }
     }
-  }
 }
 
