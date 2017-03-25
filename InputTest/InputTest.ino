@@ -9,14 +9,12 @@ Servo servo_fr;
 Servo servo_bl;
 Servo servo_br;
 
-
 // Constants
 const int HOME = 512;
 const int DEAD_MIN = 485;
 const int DEAD_MAX = 520;
-const int RAMP_INTERVAL = 50;
-const int POLL_INTERVAL = 500;
-
+const int RAMP_INTERVAL = 10;
+const int POLL_INTERVAL = 250;
 
 // Digital Pins
 const int mot_fl = 2;
@@ -62,7 +60,6 @@ void loop() {
   // Control polling frequency
   delay(POLL_INTERVAL);
 }
-
 
 void send_motors() {
   Serial.print("motors[]= ");
