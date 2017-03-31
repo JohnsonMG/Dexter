@@ -13,7 +13,9 @@ Servo servo_br;
 const int HOME = 512;
 const int DEAD_MIN = 485;
 const int DEAD_MAX = 520;
-const int RAMP_INTERVAL = 10;
+const int RAMP_LOW = 10;
+const int RAMP_MID = 50;
+const int RAMP_HIGH = 50;
 const int POLL_INTERVAL = 250;
 
 // Digital Pins
@@ -40,8 +42,8 @@ const int joyR = 3;
 int valX = HOME;
 int valY = HOME;
 int valR = HOME;
-int motors[] = {HOME, HOME, HOME, HOME}; // {fl, fr, bl, br}
-int prevMotors[] = {HOME, HOME, HOME, HOME};
+int motors[] = {0, 0, 0, 0}; // {fl, fr, bl, br}
+int prevMotors[] = {0, 0, 0, 0};
 
 void setup() {
   Serial.begin(9600);
@@ -115,41 +117,63 @@ void set_motors() {
 
 void initial_outputs() {
   //logic to set motor value. Adding HOME shifts range back to 0-1024
-  motors[0] = valY + valX + valR + HOME; //front left
-  motors[1] = valY - valX - valR + HOME; //front right
-  motors[2] = valY - valX + valR + HOME; //back left
-  motors[3] = valY + valX - valR + HOME; //back right
+  motors[0] = valY + valX + valR; //front left
+  motors[1] = -(valY - valX - valR); //front right
+  motors[2] = valY - valX + valR; //back left
+  motors[3] = -(valY + valX - valR); //back right
 }
 
 void scale_outputs() {
   //ensure range of 0 to 1023 then map for servo input range of 0-180 
   for (int i = 0; i < 4; i++) {
-    ramp_outputs(i);
-
-    if (motors[i] > 1023) {
-      motors[i] = 1023;
-    }else if (motors[i] < 0){
-      motors[i] = 0;
+    if (motors[i] > 512) {
+      motors[i] = 512;
+    }else if (motors[i] < -512){
+      motors[i] = -512;
     }
     
+    ramp_outputs(i);
+    
     prevMotors[i] = motors[i];
-    motors[i] = (int)map(motors[i], 0, 1023, 0, 180);
+    if (motors[i] == 0)
+    {
+      motors[i] = 90;
+    }
+    else if (motors[i] < 0)
+    {
+      motors[i] = (int)map(motors[i], -512, 0, 10, 85);
+    }
+    else
+    {
+      motors[i] = (int)map(motors[i], 0, 512, 105, 180);
+    }
   }
 }
 
 // Increment the motor values gradually 
 void ramp_outputs(int i){
-    if(prevMotors[i] - motors[i] != 0){
-      //Forwards
-      if (prevMotors[i] - motors[i] < 0){
-        if(prevMotors[i] + RAMP_INTERVAL < motors[i]){
-          motors[i] = prevMotors[i] + RAMP_INTERVAL;
-        }
-      // Backwards
-      } else if (prevMotors[i] - motors[i] > 0){
-        if(prevMotors[i] - RAMP_INTERVAL > motors[i]){
-          motors[i] = prevMotors[i] - RAMP_INTERVAL;
-        }
+    int ramp = RAMP_LOW;
+    if(prevMotors[i] >= 0)
+    {
+      if(prevMotors[i] > 200) {ramp = RAMP_HIGH;}
+      else if(prevMotors[i] > 40) {ramp = RAMP_MID;}
+      else {ramp = RAMP_LOW;}
+    }
+    else
+    {
+      if(prevMotors[i] < -200) {ramp = RAMP_HIGH;}
+      else if(prevMotors[i] < -40) {ramp = RAMP_MID;}
+      else {ramp = RAMP_LOW;}
+    }
+    //Forwards
+    if (prevMotors[i] - motors[i] < 0){
+      if(prevMotors[i] + ramp < motors[i]){
+        motors[i] = prevMotors[i] + ramp;
+      }
+    // Backwards
+    } else if (prevMotors[i] - motors[i] > 0){
+      if(prevMotors[i] - ramp > motors[i]){
+        motors[i] = prevMotors[i] - ramp;
       }
     }
 }
