@@ -57,10 +57,16 @@ void setup() {
 
 // Main Body
 void loop() {
-  read_input();
+  set_inputs();
   set_motors();
   // Control polling frequency
   delay(POLL_INTERVAL);
+}
+
+void set_inputs(){
+  read_input();
+  shift_inputs();
+  send_motors();
 }
 
 void send_motors() {
@@ -90,7 +96,6 @@ void read_input() {
   valX = (x >= DEAD_MAX || x <= DEAD_MIN) ? x : HOME;
   valY = (y >= DEAD_MAX || y <= DEAD_MIN) ? y : HOME;
   valR = (r >= DEAD_MAX || r <= DEAD_MIN) ? r : HOME;
-  shift_inputs();
 
   //testing print
   Serial.print("X: ");
