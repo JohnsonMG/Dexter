@@ -90,7 +90,7 @@ void read_input() {
   // Read joystick inputs
   int x = analogRead(joyX);
   int y = analogRead(joyY);
-  int r =  HOME; //analogRead(joyR);
+  int r = analogRead(joyR);
 
   // Nullify deadzone
   valX = (x >= DEAD_MAX || x <= DEAD_MIN) ? x : HOME;
@@ -146,11 +146,11 @@ void scale_outputs() {
     }
     else if (motors[i] < 0)
     {
-      motors[i] = (int)map(motors[i], -512, 0, 10, 85);
+      motors[i] = (int)map(motors[i], -512, 0, 70, 85);
     }
     else
     {
-      motors[i] = (int)map(motors[i], 0, 512, 105, 180);
+      motors[i] = (int)map(motors[i], 0, 512, 101, 116);
     }
   }
 }
@@ -161,13 +161,13 @@ void ramp_outputs(int i){
     if(prevMotors[i] >= 0)
     {
       if(prevMotors[i] > 200) {ramp = RAMP_HIGH;}
-      else if(prevMotors[i] > 40) {ramp = RAMP_MID;}
+      else if(prevMotors[i] > 80) {ramp = RAMP_MID;}
       else {ramp = RAMP_LOW;}
     }
     else
     {
       if(prevMotors[i] < -200) {ramp = RAMP_HIGH;}
-      else if(prevMotors[i] < -40) {ramp = RAMP_MID;}
+      else if(prevMotors[i] < -80) {ramp = RAMP_MID;}
       else {ramp = RAMP_LOW;}
     }
     //Forwards
