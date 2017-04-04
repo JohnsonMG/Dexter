@@ -160,15 +160,13 @@ void ramp_outputs(int i){
     int ramp = RAMP_LOW;
     if(prevMotors[i] >= 0)
     {
-      if(prevMotors[i] > 200) {ramp = RAMP_HIGH;}
-      else if(prevMotors[i] > 80) {ramp = RAMP_MID;}
+      if((prevMotors[i] > 200) || (prevMotors[i] < -200)) {ramp = RAMP_HIGH;}
+      else if((prevMotors[i] > 80) || (prevMotors[i] < -80)) {ramp = RAMP_MID;}
       else {ramp = RAMP_LOW;}
     }
-    else
+    if(((prevMotors[i] > 0) && (motors[i] < prevMotors[i])) || ((prevMotors[i] < 0) && (motors[i] > prevMotors[i])))
     {
-      if(prevMotors[i] < -200) {ramp = RAMP_HIGH;}
-      else if(prevMotors[i] < -80) {ramp = RAMP_MID;}
-      else {ramp = RAMP_LOW;}
+      ramp = ramp*2;
     }
     //Forwards
     if (prevMotors[i] - motors[i] < 0){
