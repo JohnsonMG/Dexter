@@ -16,7 +16,7 @@ const int DEAD_MAX = 520;
 const int RAMP_LOW = 10;
 const int RAMP_MID = 50;
 const int RAMP_HIGH = 50;
-const int POLL_INTERVAL = 250;
+const int POLL_INTERVAL = 25;
 
 // Digital Pins
 const int mot_fl = 2;
@@ -44,6 +44,9 @@ int valY = HOME;
 int valR = HOME;
 int motors[] = {0, 0, 0, 0}; // {fl, fr, bl, br}
 int prevMotors[] = {0, 0, 0, 0};
+int prevEncoders[] = {0, 0, 0, 0, 0, 0, 0, 0}
+int pollCounter = 0;
+
 
 void setup() {
   Serial.begin(9600);
@@ -57,33 +60,24 @@ void setup() {
 
 // Main Body
 void loop() {
+  if (pollCounter == 10){
+    pollCounter = 0;
+  }
+  
   set_inputs();
   set_motors();
   // Control polling frequency
   delay(POLL_INTERVAL);
+  pollCounter = pollCounter + 1;
 }
 
 void set_inputs(){
-  read_input();
+  if (pollInterval == 0){
+    read_input();  
+  } 
+  read_encoders();
   shift_inputs();
   send_motors();
-}
-
-void send_motors() {
-  Serial.print("motors[]= ");
-  Serial.print(motors[0]);
-  Serial.print(", ");
-  Serial.print(motors[1]);
-  Serial.print(", ");
-  Serial.print(motors[2]);
-  Serial.print(", ");
-  Serial.println(motors[3]);
-
-  //send motor values to output pins
-  servo_fl.write(motors[0]);
-  servo_fr.write(motors[1]);
-  servo_bl.write(motors[2]);
-  servo_br.write(motors[3]);
 }
 
 void read_input() {
@@ -106,11 +100,34 @@ void read_input() {
   Serial.println(valR);
 }
 
+void read_encoders() {
+  long timeBefore = millis();
+  long timeAfter = millis();
+  long freq = timeAfter - timeBefore();
+}
+
 // Adjust input range from 0 <-> 1023 to -512 <-> 512
 void shift_inputs() {
   valX = valX - HOME;
   valY = valY - HOME;
   valR = valR - HOME;
+}
+
+void send_motors() {
+  Serial.print("motors[]= ");
+  Serial.print(motors[0]);
+  Serial.print(", ");
+  Serial.print(motors[1]);
+  Serial.print(", ");
+  Serial.print(motors[2]);
+  Serial.print(", ");
+  Serial.println(motors[3]);
+
+  //send motor values to output pins
+  servo_fl.write(motors[0]);
+  servo_fr.write(motors[1]);
+  servo_bl.write(motors[2]);
+  servo_br.write(motors[3]);
 }
 
 // Controller method for populating motor values array
