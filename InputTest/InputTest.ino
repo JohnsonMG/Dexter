@@ -24,14 +24,14 @@ const int mot_fr = 3;
 const int mot_bl = 4;
 const int mot_br = 5;
 
-const int enc_flA = 6;
-const int enc_flB = 7;
-const int enc_frA = 8;
-const int enc_frB = 9;
-const int enc_blA = 10;
-const int enc_blB = 11;
-const int enc_brA = 12;
-const int enc_brB = 13;
+const int enc_flA = 18;
+const int enc_flB = 19;
+const int enc_frA = 20;
+const int enc_frB = 21;
+const int enc_blA = 22;
+const int enc_blB = 23;
+const int enc_brA = 24;
+const int enc_brB = 25;
 
 // Analog Pins
 const int joyX = 0;
@@ -44,9 +44,13 @@ int valY = HOME;
 int valR = HOME;
 int motors[] = {0, 0, 0, 0}; // {fl, fr, bl, br}
 int prevMotors[] = {0, 0, 0, 0};
-int prevEncoders[] = {0, 0, 0, 0, 0, 0, 0, 0}
+volatile long encoders[] = {0, 0, 0, 0};
+long prevEncoders[] = {0, 0, 0, 0};
+int velocities[] = {0, 0, 0, 0};
 int pollCounter = 0;
 
+unsigned long newTime = 0;
+unsigned long oldTime = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -56,25 +60,50 @@ void setup() {
   servo_fr.attach(mot_fr);
   servo_bl.attach(mot_bl);
   servo_br.attach(mot_br);
+  
+  pinMode(enc_flA, INPUT);
+  pinMode(enc_flB, INPUT);
+  pinMode(enc_frA, INPUT);
+  pinMode(enc_frB, INPUT);
+  pinMode(enc_blA, INPUT);
+  pinMode(enc_blB, INPUT);
+  pinMode(enc_brA, INPUT);
+  pinMode(enc_brB, INPUT);
+
+  digitalWrite(enc_flA, HIGH);
+  digitalWrite(enc_flB, HIGH);
+  digitalWrite(enc_frA, HIGH);
+  digitalWrite(enc_frB, HIGH);
+  digitalWrite(enc_blA, HIGH);
+  digitalWrite(enc_blB, HIGH);
+  digitalWrite(enc_brA, HIGH);
+  digitalWrite(enc_brB, HIGH);
+
+  attachInterrupt(digitalPinToInterrupt(18), encoderInterrupt, RISING);
+}
+
+// Interrupt only reads movement on front-left encoder
+void encoderInterrupt()
+{
+  for(int i = 0; i < 4; i++){
+    if (digitalRead(18 + (i*2)) == digitalRead(19 + (i*2))) {
+      encoders[i]++;
+    } else {
+      encoders[i]--;
+    }
+  }
 }
 
 // Main Body
 void loop() {
-  if (pollCounter == 10){
-    pollCounter = 0;
-  }
-  
   set_inputs();
   set_motors();
   // Control polling frequency
   delay(POLL_INTERVAL);
-  pollCounter = pollCounter + 1;
 }
 
 void set_inputs(){
-  if (pollInterval == 0){
-    read_input();  
-  } 
+  read_input();  
   read_encoders();
   shift_inputs();
   send_motors();
@@ -101,9 +130,14 @@ void read_input() {
 }
 
 void read_encoders() {
-  long timeBefore = millis();
-  long timeAfter = millis();
-  long freq = timeAfter - timeBefore();
+  newTime = millis();
+  for (int i = 0; i < 4; i ++){    
+    velocities[i] = (encoders[i]-prevEncoders[i]) * 1000 /(newTime-oldTime);
+    Serial.print ("speed = ");
+    Serial.println (vel);
+    prevEncoders[i] = encoders[i];
+  }
+  oldTime = newTime;
 }
 
 // Adjust input range from 0 <-> 1023 to -512 <-> 512
