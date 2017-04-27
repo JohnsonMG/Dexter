@@ -46,7 +46,7 @@ int motors[] = {0, 0, 0, 0}; // {fl, fr, bl, br}
 int prevMotors[] = {0, 0, 0, 0};
 volatile long encoders[] = {0, 0, 0, 0};
 long prevEncoders[] = {0, 0, 0, 0};
-int velocities[] = {0, 0, 0, 0};
+long velocities[] = {0, 0, 0, 0};
 int pollCounter = 0;
 
 unsigned long newTime = 0;
