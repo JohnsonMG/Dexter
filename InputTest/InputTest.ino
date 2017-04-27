@@ -134,7 +134,7 @@ void read_encoders() {
   for (int i = 0; i < 4; i ++){    
     velocities[i] = (encoders[i]-prevEncoders[i]) * 1000 /(newTime-oldTime);
     Serial.print ("speed = ");
-    Serial.println (vel);
+    Serial.println (velocities[i]);
     prevEncoders[i] = encoders[i];
   }
   oldTime = newTime;
